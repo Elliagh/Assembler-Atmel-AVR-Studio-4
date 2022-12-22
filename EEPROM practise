@@ -1,0 +1,41 @@
+.include "m16def.inc"
+.CSEG
+
+Reset:
+
+ldi r21,high(RAMEND)
+out SPH, r21
+ldi r21,low(RAMEND)
+out SPL, r21
+
+ldi r20, 0x00
+ldi r19, 0x0a
+ldi r16, 0x00
+
+Cycle:
+cp r16,r19
+brge Reset
+call EEPROM_write
+inc r16
+call EEPROM_read
+jmp Cycle
+
+
+EEPROM_write:
+	sbic EECR,EEWE
+	rjmp EEPROM_write
+	out EEARH, r18
+	out EEARL, r17
+	out EEDR,r16
+	sbi EECR,EEMWE
+	sbi EECR,EEWE
+	ret
+
+EEPROM_read:
+	sbic EECR,EEWE
+	rjmp EEPROM_read
+	out EEARH, r18
+	out EEARL, r17
+	sbi EECR,EERE
+	in r20,EEDR
+	ret
